@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>دليل إسطنبول – سنان السلطاني</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+:root{--navy:#0E2A47;--tur:#1FA3A3;--sand:#F3EBDD;--coral:#E4572E;--ink:#12202e;--card:#fff}
+*{box-sizing:border-box;margin:0}
+html,body{height:100%;font-family:Cairo,Tahoma,sans-serif;color:var(--ink);background:var(--sand)}
+#app{height:100%;display:flex;flex-direction:column}
+header{background:var(--navy);color:#fff;padding:calc(8px + env(safe-area-inset-top,0px)) 12px 8px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+header b{font-size:18px;font-weight:900}
+header small{opacity:.7;font-size:11px}
+.chips{display:flex;gap:6px;overflow-x:auto;padding:8px 10px;background:var(--navy)}
+.chip{flex:none;border:0;border-radius:99px;padding:6px 12px;font:700 13px Cairo,sans-serif;background:#1d4266;color:#fff}
+.chip.on{background:var(--tur)}
+#map{flex:1;min-height:0}
+#panel{background:var(--card);padding:10px 12px calc(10px + env(safe-area-inset-bottom,0px));border-radius:16px 16px 0 0;box-shadow:0 -4px 16px #0003;position:relative;z-index:500}
+#panel h3{font-size:16px}
+#info{font-size:14px;color:#456;margin:2px 0 8px}
+.row{display:flex;gap:6px;flex-wrap:wrap}
+.btn{border:0;border-radius:10px;padding:9px 12px;font:700 14px Cairo,sans-serif;background:var(--navy);color:#fff;flex:1;min-width:30%}
+.btn.t{background:var(--tur)}.btn.c{background:var(--coral)}.btn.g{background:#e7ded0;color:var(--navy)}
+.btn.sel{outline:3px solid var(--tur)}
+#alert{display:none;position:absolute;top:120px;inset-inline:12px;z-index:1000;background:var(--coral);color:#fff;border-radius:14px;padding:14px;font-weight:900;text-align:center;font-size:17px;box-shadow:0 6px 20px #0005}
+#splash{position:fixed;inset:0;z-index:3000;background:var(--navy);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;transition:opacity .6s}
+#splash h1{font-size:44px;font-weight:900;letter-spacing:-1px}
+#splash p{opacity:.8}
+#splash .sig{margin-top:22px;color:var(--tur);font-weight:700;font-size:18px}
+#splash .bar{width:120px;height:4px;background:#ffffff22;border-radius:9px;overflow:hidden;margin-top:14px}
+#splash .bar i{display:block;height:100%;width:0;background:var(--tur);animation:l 1.6s forwards}
+@keyframes l{to{width:100%}}
+#about{display:none;position:fixed;inset:0;z-index:2500;background:#000a;align-items:center;justify-content:center;padding:20px}
+#about div{background:#fff;border-radius:16px;padding:20px;max-width:340px;text-align:center}
+.pin{background:var(--coral);border:2px solid #fff;border-radius:50%;width:14px;height:14px;box-shadow:0 1px 4px #0006}
+.me{background:#2f6bff;border:3px solid #fff;border-radius:50%;width:18px;height:18px;box-shadow:0 0 0 6px #2f6bff33}
+@media(prefers-reduced-motion:reduce){#splash .bar i{animation:none;width:100%}}
+
+#transit{display:none;position:fixed;inset:0;z-index:2200;background:var(--sand);flex-direction:column}
+#transit.on{display:flex}
+#transit header{padding-top:calc(8px + env(safe-area-inset-top,0px))}
+#tbody{flex:1;overflow-y:auto;padding:12px 12px calc(20px + env(safe-area-inset-bottom,0px))}
+.hubs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.hubs .btn{flex:none;min-width:0;padding:7px 11px;font-size:13px}
+.ln{background:#fff;border-radius:14px;padding:12px;margin-bottom:10px;border-inline-start:6px solid var(--c)}
+.ln h4{display:flex;align-items:center;gap:8px;font-size:15px}
+.badge{background:var(--c);color:#fff;border-radius:8px;padding:2px 9px;font-weight:900;font-size:14px;direction:ltr}
+.ln p{font-size:13px;color:#456;margin:4px 0}
+.strip{direction:ltr;overflow-x:auto;display:flex;align-items:flex-start;padding:10px 4px 6px;margin-top:4px}
+.st{flex:none;width:74px;text-align:center;position:relative;font-size:11px;line-height:1.2;color:var(--ink)}
+.st:before{content:"";position:absolute;top:5px;left:0;right:0;height:5px;background:var(--c)}
+.st:first-child:before{left:50%}.st:last-child:before{right:50%}
+.st i{display:block;width:15px;height:15px;border-radius:50%;background:#fff;border:4px solid var(--c);margin:-2px auto 4px;position:relative}
+.st.x i{background:var(--c)}
+.note{font-size:12px;color:#456;background:#e7ded0;border-radius:10px;padding:8px 10px;margin-top:6px}
+.sb{display:flex;gap:6px;padding:0 10px 8px;background:var(--navy)}
+.sb input{flex:1;border:0;border-radius:99px;padding:8px 14px;font:400 14px Cairo,sans-serif}
+#chips2{padding-top:0}
+.chip.a{background:var(--tur)}.chip.d{background:#C98A1B}
+#extra{font-size:13px;color:#345;margin-bottom:6px;max-height:90px;overflow-y:auto}
+.fv{background:#e7ded0;color:var(--navy);margin-top:4px}
+#steps{max-height:34vh;overflow-y:auto}
+.stp{background:#f4efe6;border-radius:10px;padding:8px;margin:4px 0;font-size:13px;line-height:1.5}
+.stp.t{background:#dff3f3;border-inline-start:4px solid var(--tur)}
+</style>
+</head>
+<body>
+<div id="splash"><h1>دليل إسطنبول</h1><p>خريطة • مواصلات • تنبيه ذكي</p><div class="bar"><i></i></div><div class="sig">تطوير سنان السلطاني</div></div>
+<div id="about"><div><h3>سنان السلطاني</h3><p style="margin:8px 0">مبرمج ومصمم مواقع ومنصات تجارية وإلكترونية.<br>تم تطوير هذا التطبيق بهويته الخاصة.</p><button class="btn t" onclick="about.style.display='none'">إغلاق</button></div></div>
+<div id="transit"><header><div><b>مخطط النقل بإسطنبول</b><br><small>مترو • مرمراي • ترام • متروبوس</small></div><button class="chip" onclick="transit.classList.remove('on')">رجوع للخريطة</button></header><div id="tbody"></div></div>
+<div id="app">
+<header><div><b>دليل إسطنبول</b><br><small>by Sinan Al-Sultani</small></div><div style="display:flex;gap:6px"><button class="chip on" onclick="openTransit()">🚇 مخطط النقل</button><button class="chip" onclick="about.style.display='flex'">عن التطبيق</button></div></header>
+<div class="chips" id="chips"></div>
+<div class="sb"><input id="q" placeholder="ابحث عن مكان بإسطنبول..."><button class="chip a" id="qb">بحث</button></div>
+<div class="chips" id="chips2"></div>
+<div id="map"></div>
+<div id="alert"></div>
+<div id="panel">
+<h3 id="title">اختار مكان من الخريطة</h3>
+<div id="info">اضغط على أي نقطة أو اختار تصنيف من فوق.</div><div id="extra"></div><div id="steps"></div>
+<div class="row" id="modes">
+<button class="btn g sel" data-m="foot">🚶 مشي</button>
+<button class="btn g" data-m="car">🚗 سيارة/تكسي</button>
+<button class="btn g" data-m="transit">🚇 مواصلات عامة</button>
+</div>
+<div class="row" style="margin-top:6px">
+<button class="btn t" id="go">ابدأ الملاحة</button>
+<button class="btn g" id="sim">تجربة بدون حركة</button>
+<button class="btn c" id="stop" style="display:none">إيقاف</button>
+</div>
+</div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+const $=id=>document.getElementById(id);
+const about=$('about'),transit=$('transit');
+setTimeout(()=>{$('splash').style.opacity=0;setTimeout(()=>$('splash').remove(),600)},1900);
+
+// ===== البيانات (تكدر تزيد عليها) =====
+const CATS={tour:'🕌 سياحة',cafe:'☕ مقاهي',mall:'🛍️ مولات',trans:'🚇 محطات',fun:'🌊 ترفيه',health:'🏥 خدمات'};
+const P=[
+['آيا صوفيا','tour',41.0086,28.9802],['جامع السلطان أحمد','tour',41.0054,28.9768],['قصر توبكابي','tour',41.0115,28.9833],
+['صهريج البازيليك','tour',41.0084,28.9779],['برج غلطة','tour',41.0256,28.9741],['قصر دولمة بهجة','tour',41.0392,29.0006],
+['برج الفتاة','tour',41.0211,29.0041],['جامع السليمانية','tour',41.0162,28.9640],['البازار الكبير','tour',41.0107,28.9680],
+['البازار المصري','tour',41.0166,28.9708],['ساحة تقسيم','tour',41.0370,28.9850],['شارع الاستقلال','tour',41.0336,28.9770],
+['أورتاكوي','fun',41.0476,29.0267],['تلة تشاملجا','fun',41.0272,29.0690],['حديقة إيمرغان','fun',41.1080,29.0530],['شاطئ كيليوس','fun',41.2490,29.0310],
+['بيير لوتي','cafe',41.0546,28.9338],['كاراكوي غلل أوغلو','cafe',41.0225,28.9770],
+['إستينيا بارك','mall',41.1100,29.0070],['زورلو سنتر','mall',41.0670,29.0170],['جيفاهير','mall',41.0620,28.9940],
+['كانيون','mall',41.0780,29.0110],['أكاسيا','mall',41.0033,29.0511],['مول إسطنبول','mall',41.0640,28.8080],
+['محطة سيركجي (مرمراي)','trans',41.0166,28.9768],['يني قابي','trans',41.0043,28.9513],['رصيف إمينونو','trans',41.0176,28.9722],['رصيف قاضي كوي','trans',40.9920,29.0240],
+['مستشفى أجيبادم ماسلاك','health',41.1117,29.0229]
+];
+// ===== الخريطة =====
+const map=L.map('map',{zoomControl:false}).setView([41.0165,28.9784],12);
+L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(map);
+L.control.zoom({position:'topleft'}).addTo(map);
+const icon=L.divIcon({className:'',html:'<div class="pin"></div>',iconSize:[14,14]});
+const meIcon=L.divIcon({className:'',html:'<div class="me"></div>',iconSize:[18,18]});
+let layer=L.layerGroup().addTo(map),cat='all',dest=null,mode='foot',me=null,meMark=null,routeLine=null,coords=[],watchId=null,simTimer=null,navOn=false,arrived300=false,lastReroute=0;
+
+function draw(){layer.clearLayers();P.filter(p=>cat==='all'||p[1]===cat).forEach(p=>{
+ L.marker([p[2],p[3]],{icon}).addTo(layer).bindTooltip(p[0]).on('click',()=>pick({name:p[0],lat:p[2],lng:p[3]}))});}
+$('chips').innerHTML='<button class="chip on" data-c="all">الكل</button>'+Object.entries(CATS).map(([k,v])=>`<button class="chip" data-c="${k}">${v}</button>`).join('')+'<button class="chip" id="near">📍 القريب مني</button>';
+$('chips').onclick=e=>{const b=e.target.closest('.chip');if(!b)return;
+ if(b.id==='near'){locate(()=>{if(!me)return;const n=P.map(p=>({p,d:dist(me,{lat:p[2],lng:p[3]})})).sort((a,b)=>a.d-b.d)[0];pick({name:n.p[0],lat:n.p[2],lng:n.p[3]});map.setView([n.p[2],n.p[3]],15)});return}
+ document.querySelectorAll('#chips .chip').forEach(x=>x.classList.remove('on'));b.classList.add('on');cat=b.dataset.c;draw()};
+map.on('click',e=>{if(addDol){addDol=false;const n=prompt('اسم موقف الدولمش أو خطه:');if(n){const f=prompt('الوجهة والسعر التقريبي (اختياري):')||'';const a=store.get('dol',[]);a.push({n,lat:e.latlng.lat,lng:e.latlng.lng,note:f});store.set('dol',a);renderDol()}$('info').textContent='تمت الإضافة.';return}
+ pick({name:'نقطة على الخريطة',lat:e.latlng.lat,lng:e.latlng.lng})});
+draw();
+
+// ===== أدوات حساب =====
+const R=6371000,rad=x=>x*Math.PI/180;
+function dist(a,b){const dLa=rad(b.lat-a.lat),dLo=rad(b.lng-a.lng);const h=Math.sin(dLa/2)**2+Math.cos(rad(a.lat))*Math.cos(rad(b.lat))*Math.sin(dLo/2)**2;return 2*R*Math.asin(Math.sqrt(h))}
+function distToRoute(pt,line){ // أقرب مسافة من الموقع إلى خط السير
+ const k=Math.cos(rad(pt.lat)),px=pt.lng*k*111320,py=pt.lat*110540;let best=1e12;
+ for(let i=0;i<line.length-1;i++){const ax=line[i][1]*k*111320,ay=line[i][0]*110540,bx=line[i+1][1]*k*111320,by=line[i+1][0]*110540;
+  const dx=bx-ax,dy=by-ay,l=dx*dx+dy*dy;let t=l?((px-ax)*dx+(py-ay)*dy)/l:0;t=Math.max(0,Math.min(1,t));
+  best=Math.min(best,Math.hypot(px-(ax+t*dx),py-(ay+t*dy)))}return best}
+const fmtD=m=>m>=1000?(m/1000).toFixed(1)+' كم':Math.round(m)+' م';
+const fmtT=s=>{const m=Math.round(s/60);return m>=60?Math.floor(m/60)+' س '+(m%60)+' د':m+' دقيقة'}
+
+// ===== اختيار وجهة =====
+function pick(d){dest=d;if(window.dm)map.removeLayer(window.dm);window.dm=L.marker([d.lat,d.lng]).addTo(map);
+ $('title').textContent=d.name;showExtra(d);$('info').textContent='جاري حساب المسار...';
+ locate(()=>route(),()=>{$('info').textContent='فعّل الموقع حتى نحسب المسافة والوقت.'})}
+function locate(ok,fail){if(me&&ok)return ok();if(!navigator.geolocation){fail&&fail();return}
+ navigator.geolocation.getCurrentPosition(p=>{setMe(p.coords.latitude,p.coords.longitude);ok&&ok()},()=>fail&&fail(),{enableHighAccuracy:true,timeout:10000})}
+function setMe(lat,lng){me={lat,lng};if(!meMark)meMark=L.marker([lat,lng],{icon:meIcon}).addTo(map);else meMark.setLatLng([lat,lng])}
+document.querySelectorAll('#modes .btn').forEach(b=>b.onclick=()=>{document.querySelectorAll('#modes .btn').forEach(x=>x.classList.remove('sel'));b.classList.add('sel');mode=b.dataset.m;if(dest)route()});
+
+async function route(){
+ if(mode!=='transit'){ALIGHT=[];$('steps').innerHTML=''}
+ if(!dest||!me)return;
+ if(mode==='transit')return transitRoute();
+ const base=mode==='foot'?'routed-foot':'routed-car';
+ try{
+  const r=await fetch(`https://routing.openstreetmap.de/${base}/route/v1/driving/${me.lng},${me.lat};${dest.lng},${dest.lat}?overview=full&geometries=geojson`);
+  const j=await r.json();const rt=j.routes[0];coords=rt.geometry.coordinates.map(c=>[c[1],c[0]]);
+  if(routeLine)map.removeLayer(routeLine);routeLine=L.polyline(coords,{color:'#1FA3A3',weight:6,opacity:.9}).addTo(map);
+  if(!navOn)map.fitBounds(routeLine.getBounds(),{padding:[40,40]});
+  $('info').textContent='المسافة '+fmtD(rt.distance)+' • الوقت '+fmtT(rt.duration)+(mode==='car'?' (بدون زحمة)':'');
+ }catch(e){$('info').textContent='تعذر حساب المسار. تأكد من الإنترنت.'}}
+
+// ===== التنبيهات =====
+let actx;function beep(n=3){try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();for(let i=0;i<n;i++){const o=actx.createOscillator(),g=actx.createGain();o.connect(g);g.connect(actx.destination);o.frequency.value=880;g.gain.value=.3;o.start(actx.currentTime+i*.4);o.stop(actx.currentTime+i*.4+.25)}}catch(e){}}
+function say(t){const a=$('alert');a.textContent=t;a.style.display='block';clearTimeout(a._t);a._t=setTimeout(()=>a.style.display='none',6000);
+ beep();notify(t);navigator.vibrate&&navigator.vibrate([300,150,300,150,300]);
+ try{const u=new SpeechSynthesisUtterance(t);u.lang='ar-SA';speechSynthesis.speak(u)}catch(e){}}
+
+// ===== الملاحة والتتبع =====
+function onPos(lat,lng){
+ setMe(lat,lng);map.panTo([lat,lng]);if(!dest)return;
+ const d=dist(me,dest);
+ ALIGHT.forEach(a=>{if(a.done)return;const da=dist(me,a);if(da<150){a.done=1;say('انزل هنا! محطة '+a.name)}else if(da<500&&!a.w){a.w=1;say('قربت! استعد تنزل بمحطة '+a.name+' ('+a.line+')')}});
+ $('info').textContent='باقي '+fmtD(d)+(coords.length?'':'');
+ if(d<40){say('وصلت إلى '+dest.name);stop();return}
+ if(d<300&&!arrived300){arrived300=true;say('قربت توصل! استعد، باقي '+fmtD(d))}
+ if(coords.length&&mode!=='transit'&&distToRoute(me,coords)>(mode==='foot'?60:100)&&Date.now()-lastReroute>15000){
+  lastReroute=Date.now();say('ابتعدت عن المسار! جاري إرجاعك للطريق الصحيح');route()}}
+function start(){
+ if(!dest){say('اختار وجهة أولاً');return}
+ if(mode==='transit'&&!ALIGHT.length){route();return}
+ ALIGHT.forEach(a=>{a.w=0;a.done=0});navOn=true;arrived300=false;$('go').style.display='none';$('sim').style.display='none';$('stop').style.display='block';beep(1);try{navigator.wakeLock&&navigator.wakeLock.request('screen')}catch(e){}
+ if(!navigator.geolocation){say('الموقع غير مدعوم');return}
+ if(NATIVE)nativeWatch();else watchId=navigator.geolocation.watchPosition(p=>onPos(p.coords.latitude,p.coords.longitude),()=>say('تعذر قراءة الموقع'),{enableHighAccuracy:true,maximumAge:2000})}
+function stop(){navOn=false;nativeStop();if(watchId!=null)navigator.geolocation.clearWatch(watchId);watchId=null;clearInterval(simTimer);
+ $('go').style.display='block';$('sim').style.display='block';$('stop').style.display='none'}
+async function simulate(){ // يحرك نقطة وهمية على المسار حتى تجرب التنبيهات بدون ما تتحرك
+ if(!dest){say('اختار وجهة أولاً');return}
+ if(!me)setMe(41.0082,28.9784);await route();if(!coords.length)return;
+ navOn=true;arrived300=false;$('go').style.display='none';$('sim').style.display='none';$('stop').style.display='block';
+ let i=0;const step=Math.max(1,Math.floor(coords.length/60));
+ simTimer=setInterval(()=>{if(i>=coords.length){stop();return}
+  let c=coords[i];if(i===step*20)c=[c[0]+.0012,c[1]+.0012]; // انحراف متعمد لتجربة التنبيه
+  onPos(c[0],c[1]);i+=step},900)}
+$('go').onclick=()=>{locate(start,()=>say('فعّل الموقع من إعدادات المتصفح'))};
+$('sim').onclick=simulate;$('stop').onclick=stop;
+
+// ===== مخطط النقل =====
+// نجمة (*) بآخر الاسم = محطة تبديل مع خط آخر
+const L_=[
+['M1A','#E30A17','ياني قابي ← مطار أتاتورك (الأوروبي)','يقطع الفاتح ويتصل بالترام T1 بأكسراي وبـ T4 بتوبقابي وبمرمراي بيني قابي.',['Yenikapı*','Aksaray*','Topkapı-Ulubatlı*','Otogar','Merter','Zeytinburnu*','Bakırköy-İncirli','Ataköy-Şirinevler*','Atatürk Havalimanı']],
+['M1B','#F26B6B','ياني قابي ← كيرازلي','يشترك مع M1A حتى أوتوغار ثم يفترق.',['Yenikapı*','Aksaray*','Topkapı-Ulubatlı*','Otogar','Bağcılar Meydan','Kirazlı*']],
+['M2','#00A651','ياني قابي ← حاجي عثمان','الخط الرئيسي: تقسيم، شيشلي، ليفنت، المراكز التجارية. فيه تبديل مع T1 وF1 وM6 وM11.',['Yenikapı*','Vezneciler*','Haliç','Şişhane','Taksim*','Osmanbey','Şişli-Mecidiyeköy*','Gayrettepe*','Levent*','4.Levent','İTÜ-Ayazağa','Hacıosman']],
+['M3','#1E88E5','كيرازلي ← كاياشهير','يربط الأوروبي الغربي ويتصل بـ M7 بمحمود بي وM9 بأولمبيات.',['Kirazlı*','Mahmutbey*','Haznedar','Olimpiyat*','İkitelli Sanayi','Başak Konutları','Kayaşehir*']],
+['M4','#E91E8C','قاضي كوي ← مطار صبيحة كوكجن (الآسيوي)','أهم خط بالجانب الآسيوي، ويوصلك لمطار صبيحة. تبديل مع مرمراي.',['Kadıköy*','Ayrılık Çeşmesi*','Kozyatağı*','Bostancı*','Kartal','Pendik','Kurtköy','Sabiha Gökçen']],
+['M5','#7B3FA0','أسكدار ← سلطان بيلي','بدون سائق، يتصل بمرمراي بأسكدار.',['Üsküdar*','Altunizade','Ümraniye','Çarşı','Ihlamurkuyu','Altınşehir','Çekmeköy','Hasanpaşa']],
+['M6','#8B5A2B','ليفنت ← بوغازيجي/هيسار أوستو','خط قصير يخدم إتيلر وجامعة بوغازيجي.',['Levent*','Nispetiye','Etiler','Boğaziçi Ü./Hisarüstü']],
+['M7','#E87BB0','يلدز ← محمود بي','بدون سائق، يمر بكاغيت خانه وألي بي كوي.',['Yıldız','Mecidiyeköy*','Kağıthane*','Nurtepe','Alibeyköy*','Çırçır','Karadeniz Mah.*','Mahmutbey*']],
+['M8','#9CCC3C','بوستانجي ← بارسيلر (الآسيوي)','بدون سائق، يتصل بـ M4 بقوز يتاغي وبـ M5 بدودللو.',['Bostancı*','Kozyatağı*','İçerenköy','Dudullu*','Huzur','Parseller']],
+['M9','#F9A825','أتاكوي ← أولمبيات','يربط أتاكوي وباهجه شهير بأولمبيات.',['Ataköy-Şirinevler*','Yenibosna*','Halkalı Cd.','İkitelli Sanayi','Olimpiyat*']],
+['M11','#6D6E71','غيرت تبه ← مطار إسطنبول ← خالكالي','خط المطار الجديد (يشغّله TCDD). وصل لخالكالي يونيو 2026.',['Gayrettepe*','Kağıthane*','İstanbul Havalimanı','Kayaşehir*','Halkalı*']],
+['مرمراي','#2BA3DB','خالكالي ← غبزه (تحت البوسفور)','الوحيد اللي يعبرك بين أوروبا وآسيا بالقطار. تبديل بـ ياني قابي وأسكدار وآيرليك تشيشمه وبوستانجي.',['Halkalı*','Bakırköy','Yenikapı*','Sirkeci','Üsküdar*','Ayrılık Çeşmesi*','Bostancı*','Kartal','Pendik','Gebze']],
+['T1','#1E3A8A','كاباتاش ← باغجيلار (ترام)','الترام السياحي: بيوغلو، إمينونو، سلطان أحمد، أكسراي.',['Kabataş*','Karaköy','Eminönü*','Sirkeci*','Sultanahmet','Beyazıt','Aksaray*','Zeytinburnu*','Bağcılar']],
+['T4','#F57C00','توبقابي ← مسجد السلام (ترام)','يتصل بـ M1 بتوبقابي وبـ M7 بكارادنيز.',['Topkapı*','Karadeniz Mah.*','Mescid-i Selam']],
+['T5','#8E5E3B','إمينونو ← ألي بي كوي (ترام)','يمر بأيوب وبالقرن الذهبي.',['Eminönü*','Eyüpsultan','Alibeyköy*']],
+['متروبوس','#D2232A','بيليكدوزو ← سوغوتلوجشمه','باص بمسار خاص يعبر جسر البوسفور، ويشتغل كل اليوم بأوقات الذروة مزدحم.',['Beylikdüzü','Avcılar','Zincirlikuyu*','15 Temmuz Köprüsü','Söğütlüçeşme*']]
+];
+const HUBS=[['ياني قابي',41.0043,28.9513],['أكسراي',41.0117,28.9545],['سيركجي',41.0166,28.9768],['إمينونو',41.0176,28.9722],['تقسيم',41.0370,28.9850],['أسكدار',41.0262,29.0155],['قاضي كوي',40.9920,29.0240],['غيرت تبه',41.0680,29.0120]];
+function openTransit(){
+ const t=$('tbody');if(!t.innerHTML){
+ t.innerHTML='<div class="hubs">'+HUBS.map((h,i)=>`<button class="btn t" onclick="goHub(${i})">📍 ${h[0]}</button>`).join('')+'</div>'+
+ '<div class="note" style="margin:0 0 10px">اضغط على أي محطة رئيسية لتحديدها كوجهة. النقطة المعبّاة بالدايرة = محطة تبديل بين خطوط.</div>'+
+ L_.map(l=>`<div class="ln" style="--c:${l[1]}"><h4><span class="badge">${l[0]}</span>${l[2]}</h4><p>${l[3]}</p><div class="strip">${l[4].map(n=>`<div class="st${n.endsWith('*')?' x':''}"><i></i>${n.replace('*','')}</div>`).join('')}</div></div>`).join('')+
+ '<div class="ln" style="--c:#0E2A47"><h4><span class="badge">⛴️</span>العبّارات والتلفريك</h4><p>عبّارات بين إمينونو وكاراكوي وأسكدار وقاضي كوي وبشكتاش. بوغازيجي (البوسفور) رحلة سياحية ممتازة. وتشتغل ببطاقة إسطنبول كارد.</p></div>'+
+ '<div class="ln" style="--c:#C98A1B"><h4><span class="badge">🚐</span>الدولمش</h4><p>ما عنده خريطة رسمية. مواقفه الرئيسية قرب تقسيم وإمينونو وأسكدار وقاضي كوي. ننتظر نضيف خطوطه يدوياً بالنسخة الجاية.</p></div>'+
+ '<div class="note">الأوقات التقريبية: المترو من 6 صباحاً إلى 12 ليلاً. بليالي الجمعة والسبت وبالعطل الرسمية تشتغل خطوط M1A وM1B وM2 وM4 وM5 وM6 وM7 على مدار الساعة تقريباً بفاصل 30 دقيقة. قبل الاعتماد على أي خط وأوقاته، قارنه بالخريطة الرسمية على metro.istanbul لأن الشبكة تتوسع باستمرار.</div>'}
+ $('transit').classList.add('on')}
+function goHub(i){const h=HUBS[i];$('transit').classList.remove('on');map.setView([h[1],h[2]],15);pick({name:h[0],lat:h[1],lng:h[2]})}
+
+// ===== النسخة 2 =====
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const store={get:(k,d)=>{try{return JSON.parse(localStorage.getItem(k))||d}catch(e){return d}},set:(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+const ov=L.layerGroup().addTo(map),lines=L.layerGroup().addTo(map),dol=L.layerGroup().addTo(map);
+const ic2=c=>L.divIcon({className:'',html:'<div class="pin" style="background:'+c+'"></div>',iconSize:[14,14]});
+let addDol=false,ST=[];
+async function ovp(q){const r=await fetch('https://overpass-api.de/api/interpreter',{method:'POST',body:'data='+encodeURIComponent(q)});if(!r.ok)throw 0;return (await r.json()).elements}
+
+// أماكن قريبة تلقائياً من OpenStreetMap
+const NEAR={cafe:['☕ مقاهي','"amenity"="cafe"'],food:['🍽️ مطاعم','"amenity"="restaurant"'],pharm:['💊 صيدليات','"amenity"="pharmacy"'],atm:['🏧 صراف','"amenity"="atm"'],hotel:['🏨 فنادق','"tourism"="hotel"'],hosp:['🏥 مستشفيات','"amenity"="hospital"'],mall:['🛍️ مولات','"shop"="mall"'],mosque:['🕌 جوامع','"amenity"="place_of_worship"]["religion"="muslim"']};
+$('chips2').innerHTML=Object.entries(NEAR).map(([k,v])=>`<button class="chip a" data-n="${k}">${v[0]}</button>`).join('')+
+ '<button class="chip" id="bl">🚇 اعرض الخطوط</button><button class="chip" id="bf">⭐ مفضلتي</button><button class="chip d" id="bd">🚐 أضف دولمش</button>';
+$('chips2').onclick=async e=>{const b=e.target.closest('.chip');if(!b)return;
+ if(b.dataset.n)return nearby(b.dataset.n);
+ if(b.id==='bl')return showLines();
+ if(b.id==='bf')return showFav();
+ if(b.id==='bd'){addDol=true;$('title').textContent='🚐 إضافة موقف دولمش';$('info').textContent='اضغط على الخريطة بمكان الموقف.'}};
+async function nearby(k){const c=me||map.getCenter();const lat=c.lat,lng=c.lng;$('title').textContent=NEAR[k][0]+' حولك';$('info').textContent='جاري البحث...';
+ try{const els=await ovp(`[out:json][timeout:25];nwr[${NEAR[k][1]}](around:1500,${lat},${lng});out center 80;`);
+  ov.clearLayers();let n=0;const pts=[];
+  els.forEach(el=>{const la=el.lat||(el.center&&el.center.lat),lo=el.lon||(el.center&&el.center.lon);if(!la)return;const t=el.tags||{};const name=t.name||t['name:en']||'بدون اسم';n++;pts.push([la,lo]);
+   L.marker([la,lo],{icon:ic2('#1FA3A3')}).addTo(ov).bindTooltip(name).on('click',()=>pick({name,lat:la,lng:lo,tags:t}))});
+  $('info').textContent=n?('لقينا '+n+' مكان خلال 1.5 كم. اضغط أي دبوس.'):'ما لقينا نتائج هنا. حرّك الخريطة وجرب مرة ثانية.';
+  if(pts.length)map.fitBounds(pts,{padding:[40,40],maxZoom:16})}catch(e){$('info').textContent='تعذر جلب الأماكن. جرب بعد شوي.'}}
+
+// خطوط المترو والترام ومرمراي مرسومة على الخريطة
+async function showLines(){if(map.getZoom()<12)map.setZoom(12);const b=map.getBounds(),bb=[b.getSouth(),b.getWest(),b.getNorth(),b.getEast()].join(',');
+ $('info').textContent='جاري تحميل الخطوط الظاهرة بالشاشة...';
+ try{const els=await ovp(`[out:json][timeout:40];(rel["route"~"^(subway|light_rail|tram)$"](${bb});rel["route"="train"]["name"~"Marmaray",i](${bb});node["railway"="station"](${bb}););out geom;`);
+  lines.clearLayers();ST=[];
+  els.forEach(r=>{const t=r.tags||{};
+   if(r.type==='node'){ST.push({name:t.name||'محطة',lat:r.lat,lng:r.lon});L.circleMarker([r.lat,r.lon],{radius:4,color:'#0E2A47',weight:2,fillColor:'#fff',fillOpacity:1}).addTo(lines).bindTooltip(t.name||'محطة').on('click',()=>pick({name:t.name||'محطة',lat:r.lat,lng:r.lon}));return}
+   const col=t.colour||t.color||'#555';(r.members||[]).forEach(m=>{if(m.type==='way'&&m.geometry&&!/platform|stop/.test(m.role||''))L.polyline(m.geometry.map(g=>[g.lat,g.lon]),{color:col,weight:4,opacity:.85}).addTo(lines).bindTooltip(t.ref||t.name||'')})});
+  let msg='تم رسم الخطوط. اضغط أي محطة لتحديدها كوجهة.';
+  if(me&&ST.length){const n=ST.map(s=>({s,d:dist(me,s)})).sort((a,b)=>a.d-b.d)[0];msg='أقرب محطة إلك: '+n.s.name+' ('+fmtD(n.d)+'). '+msg}
+  $('info').textContent=msg}catch(e){$('info').textContent='تعذر تحميل الخطوط. قرّب الخريطة وجرب مرة ثانية.'}}
+
+// بحث بالاسم (Nominatim)
+async function search(){const q=$('q').value.trim();if(!q)return;$('info').textContent='جاري البحث...';
+ try{const r=await fetch('https://nominatim.openstreetmap.org/search?format=json&limit=1&viewbox=28.4,41.4,29.6,40.8&bounded=1&q='+encodeURIComponent(q));const j=await r.json();
+  if(!j.length){$('info').textContent='ما لقينا هالمكان بإسطنبول.';return}
+  const p=j[0];map.setView([+p.lat,+p.lon],16);pick({name:p.display_name.split(',')[0],lat:+p.lat,lng:+p.lon})}catch(e){$('info').textContent='تعذر البحث. تأكد من الإنترنت.'}}
+$('qb').onclick=search;$('q').onkeydown=e=>{if(e.key==='Enter')search()};
+
+// تفاصيل المكان + المفضلة + الدولمش
+function showExtra(d){const t=d.tags||{};let h='';
+ if(t.opening_hours)h+='🕒 '+esc(t.opening_hours)+'<br>';
+ const ph=t.phone||t['contact:phone'];if(ph)h+='📞 <a href="tel:'+esc(ph.replace(/[^+\d]/g,''))+'">'+esc(ph)+'</a><br>';
+ if(t.website&&/^https?:\/\//.test(t.website))h+='🌐 <a href="'+esc(t.website)+'" target="_blank" rel="noopener">الموقع</a><br>';
+ if(d.note)h+='🚐 '+esc(d.note)+'<br>';
+ const fav=store.get('fav',[]).some(f=>f.lat===d.lat&&f.lng===d.lng);
+ h+='<button class="chip fv" id="fvb">'+(fav?'⭐ بالمفضلة (إزالة)':'☆ أضف للمفضلة')+'</button>'+(d.di!=null?' <button class="chip fv" id="dlb">🗑️ حذف الموقف</button>':'');
+ $('extra').innerHTML=h;
+ $('fvb').onclick=()=>{let a=store.get('fav',[]);a=fav?a.filter(f=>!(f.lat===d.lat&&f.lng===d.lng)):a.concat([{name:d.name,lat:d.lat,lng:d.lng}]);store.set('fav',a);showExtra(d)};
+ if(d.di!=null)$('dlb').onclick=()=>{const a=store.get('dol',[]);a.splice(d.di,1);store.set('dol',a);renderDol();$('extra').innerHTML=''}}
+function showFav(){const a=store.get('fav',[]);ov.clearLayers();$('title').textContent='⭐ مفضلتي';
+ if(!a.length){$('info').textContent='ما عندك مفضلة بعد. اختار مكان واضغط "أضف للمفضلة".';return}
+ a.forEach(f=>L.marker([f.lat,f.lng],{icon:ic2('#F9A825')}).addTo(ov).bindTooltip(f.name).on('click',()=>pick(f)));
+ map.fitBounds(a.map(f=>[f.lat,f.lng]),{padding:[40,40],maxZoom:15});$('info').textContent=a.length+' مكان محفوظ.'}
+function renderDol(){dol.clearLayers();store.get('dol',[]).forEach((d,i)=>L.marker([d.lat,d.lng],{icon:ic2('#C98A1B')}).addTo(dol).bindTooltip('🚐 '+d.n).on('click',()=>pick({name:'🚐 '+d.n,lat:d.lat,lng:d.lng,note:d.note,di:i})))}
+renderDol();
+
+// ===== الجسر للتطبيق الحقيقي (Capacitor): تتبع بالخلفية + إشعارات =====
+const CAP=window.Capacitor,NATIVE=!!(CAP&&CAP.isNativePlatform&&CAP.isNativePlatform());
+const BG=NATIVE?CAP.registerPlugin('BackgroundGeolocation'):null;let bgId=null,nid=1;
+async function nativeWatch(){try{
+ try{await CAP.Plugins.LocalNotifications.requestPermissions()}catch(e){}
+ bgId=await BG.addWatcher({backgroundTitle:'دليل إسطنبول',backgroundMessage:'جاري تتبع رحلتك',requestPermissions:true,stale:false,distanceFilter:10},(loc,err)=>{
+  if(err){say(err.code==='NOT_AUTHORIZED'?'فعّل صلاحية الموقع (دائماً) من إعدادات التطبيق':'تعذر قراءة الموقع');return}
+  onPos(loc.latitude,loc.longitude)})}catch(e){say('تعذر تشغيل التتبع بالخلفية')}}
+function nativeStop(){if(NATIVE&&bgId!=null){try{BG.removeWatcher({id:bgId})}catch(e){}bgId=null}}
+function notify(t){if(!NATIVE)return;try{CAP.Plugins.LocalNotifications.schedule({notifications:[{id:nid++,title:'دليل إسطنبول',body:t,schedule:{at:new Date(Date.now()+300)}}]})}catch(e){}}
+
+// ===== مواصلات عامة كاملة (باص، مترو، ترام، دولمش، عبّارات) عبر Google =====
+let ALIGHT=[],gLoad=null;
+const gKey=()=>store.get('gkey','');
+function askKey(){const k=prompt('الصق مفتاح Google Maps API:');if(k){store.set('gkey',k.trim());gLoad=null;if(dest)route()}}
+window.gm_authFailure=()=>{$('info').textContent='مفتاح Google غير صالح أو الخدمة غير مفعّلة بحسابك.';gLoad=null};
+function loadG(){if(window.google&&google.maps&&google.maps.DirectionsService)return Promise.resolve();
+ return gLoad||(gLoad=new Promise((ok,no)=>{window.__gm=()=>ok();const sc=document.createElement('script');sc.src='https://maps.googleapis.com/maps/api/js?key='+encodeURIComponent(gKey())+'&language=ar&callback=__gm';sc.onerror=()=>{gLoad=null;no('network')};document.head.appendChild(sc)}))}
+async function transitRoute(){
+ if(!gKey()){$('info').innerHTML='لحساب الباص والمترو والترام والدولمش خطوة بخطوة، أدخل مفتاح Google مرة وحدة: <button class="chip a" onclick="askKey()">🔑 إدخال المفتاح</button> أو <a href="https://www.google.com/maps/dir/?api=1&origin='+me.lat+','+me.lng+'&destination='+dest.lat+','+dest.lng+'&travelmode=transit" target="_blank" style="color:#1FA3A3;font-weight:700">افتحها بخرائط Google</a>';return}
+ $('info').textContent='جاري حساب خطوط المواصلات...';
+ try{await loadG();
+  const res=await new Promise((ok,no)=>new google.maps.DirectionsService().route({origin:{lat:me.lat,lng:me.lng},destination:{lat:dest.lat,lng:dest.lng},travelMode:'TRANSIT',transitOptions:{departureTime:new Date()}},(r,st)=>st==='OK'?ok(r):no(st)));
+  const leg=res.routes[0].legs[0];ALIGHT=[];let h='';
+  leg.steps.forEach(st=>{
+   if(st.travel_mode==='TRANSIT'&&st.transit){const t=st.transit,ln=t.line.short_name||t.line.name||'',v=(t.line.vehicle&&t.line.vehicle.name)||'';
+    ALIGHT.push({name:t.arrival_stop.name,line:ln,lat:t.arrival_stop.location.lat(),lng:t.arrival_stop.location.lng()});
+    h+=`<div class="stp t"><b>اركب ${esc(v)} ${esc(ln)}</b>${t.headsign?' باتجاه '+esc(t.headsign):''}<br>من محطة: <b>${esc(t.departure_stop.name)}</b>${t.departure_time?' ('+esc(t.departure_time.text)+')':''}<br>انزل بمحطة: <b>${esc(t.arrival_stop.name)}</b> بعد ${t.num_stops} محطة</div>`}
+   else h+=`<div class="stp">🚶 ${esc((st.instructions||'مشي').replace(/<[^>]+>/g,' '))} (${esc(st.distance.text)})</div>`});
+  $('steps').innerHTML=h;
+  $('info').textContent='المدة '+leg.duration.text+' • المسافة '+leg.distance.text+(ALIGHT.length?' • اضغط "ابدأ الملاحة" ليبلغك قبل كل محطة نزول':'')
+ }catch(e){$('info').innerHTML='تعذر حساب المواصلات ('+esc(e)+'). تأكد من المفتاح وتفعيل الخدمة. <button class="chip a" onclick="askKey()">🔑 تغيير المفتاح</button>'}}
+locate(()=>{map.setView([me.lat,me.lng],14)});
+</script>
+</body>
+</html>
